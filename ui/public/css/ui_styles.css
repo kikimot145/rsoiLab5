@@ -1,0 +1,193 @@
+body {
+	background-color: #FFE4C4;
+}
+
+#top {
+	width: 100%;
+	height: 100px;
+}
+
+#top_menu {
+	width: 1024px;
+	height: 100%;
+	background-color: #380000;
+	margin: auto;
+}
+
+#logo {
+	float: left;
+	width: 100px;
+	height: 100%;
+	background-image: url(../img/L.png);
+	background-size: 80%;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+#login_block {
+	float: left;
+	left: 100px;
+	width: 200px;
+	height: 90%;
+	padding: 10px;
+	margin-top: 4px;
+	font: 16pt sans-serif;
+	font-weight: bold;
+	text-decoration: none;
+	color: #FFFFFF;
+}
+
+#return_block {
+	float: left;
+	left: 100px;
+	width: 200px;
+	height: 100%;
+	padding: 10px;
+}
+
+#browse_block {
+	float: left;
+	position: relative;
+	left: 80px;
+	width: 400px;
+	height: 100%;
+	paddong: 20px;
+}
+
+#browse_block a {
+	float: left;
+	display: block;
+	margin-top: 29px;
+	margin-left: 70px;
+	font: 24pt sans-serif;
+	font-weight: bold;
+	text-decoration: none;
+	color: #FFFFFF;
+}
+
+#browse_block a:hover {
+	text-decoration: underline;
+}
+
+#return_block input{
+	margin: 7px;
+	top: 20px;
+	height: 20px;
+}
+
+#book_to_return {
+	width: 156px;
+}
+
+#btn_return {
+	width: 160px;
+}
+
+#msgField {
+	width: 1024px;
+	height: 20px;
+	background-color: #FFA393;
+	margin: auto;
+}
+
+#msgText {
+	position: relative;
+	left: -300px;
+}
+
+#mid {
+	width: 1024px;
+	height: 500px;
+	background-color: #FFD0B0;
+	margin: auto;
+}
+
+#pageTitle {
+	position: relative;
+	left: 20px;
+	width: 700px;
+	font: 32pt sans-serif;
+	font-weight: bold;
+	text-decoration: none;
+	color: #000000;
+}
+
+#bookInfo {
+	position: relative;
+	top: 20px;
+	font: 18pt sans-serif;
+	text-indent: 20px;
+	font-weight: bold;
+	color: #;
+}
+
+
+#btnTake {
+	width: 300px;
+	margin: auto;
+	margin-top: 50px;
+}
+
+#btnTake a {
+	font: 24pt sans-serif;
+	font-weight: bold;
+	text-decoration: none;
+	color: #391802;
+}
+
+#btnTake a:hover {
+	text-decoration: underline;
+}
+
+#baList {
+	padding: 40px;
+}
+
+.listEntry {
+	width:100%;
+	height: 50px;
+	margin-top: auto;
+	padding-left: 20px;
+}
+
+.listEntry a {
+	font: 18pt sans-serif;
+	font-weight: bold;
+	text-decoration: none;
+	color: #000000;
+}
+
+.listEntry a:hover {
+	text-decoration: underline;
+}
+
+.navBtns {
+	float: left;
+	width: 40%;
+	height: 50px;
+	margin-top: 2;
+	position: absolute;
+	
+	bottom: 20px;
+}
+
+#btnPrev {
+	text-align: left;
+	left: 210px;
+}
+
+#btnNext {
+	text-align: right;
+	right: 210px;
+}
+
+.navBtns a {
+	font: 14pt sans-serif;
+	font-weight: bold;
+	text-decoration: none;
+	color: #000000;
+}
+
+.navBtns a:hover {
+	text-decoration: underline;
+}
