@@ -2,7 +2,8 @@ const host = 'http://127.0.0.1:3002';
 const request = require('request');
 		
 module.exports = {
-    getReaderById : function(id, callback) {
+    getReaderById : function(args, callback) {
+		const id = args.id;
 		const url = host+'/readers/' + id;
 		
 		console.log('GET ' + url);
@@ -21,7 +22,9 @@ module.exports = {
 		});
     },
 	
-	addBookToReader : function (readerId, bookId, callback) {
+	addBookToReader : function (args, callback) {
+		const readerId = args.readerId;
+		const bookId = args.bookId;
 		const url = host+'/readers/' + readerId + '/books?book=' + bookId;
 		
 		console.log('PATCH ' + url);
@@ -40,7 +43,9 @@ module.exports = {
 		});
 	},
 	
-	removeBookFromReader : function (readerId, bookId, callback) {
+	removeBookFromReader : function (args, callback) {
+		const readerId = args.readerId;
+		const bookId = args.bookId;
 		const url = host+'/readers/' + readerId + '/books?book=' + bookId;
 		
 		console.log('DELETE ' + url);

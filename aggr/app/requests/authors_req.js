@@ -2,8 +2,9 @@ const host = 'http://127.0.0.1:3001';
 const request = require('request');
 
 module.exports = {
-    getAuthorById : function(id, callback){
-        const url = host+'/authors/' + id;
+    getAuthorById : function(args, callback){
+        const id = args.id;
+		const url = host+'/authors/' + id;
 		
 		console.log('GET ' + url);
 		
@@ -21,8 +22,10 @@ module.exports = {
 		});
     },
 	
-	getAuthors : function (page, size, callback) {
-        const url = host+'/authors?page=' + page + '&size=' + size;
+	getAuthors : function (args, callback) {
+        const page = args.page;
+		const size = args.size;
+		const url = host+'/authors?page=' + page + '&size=' + size;
 		
 		console.log('GET ' + url);
 		

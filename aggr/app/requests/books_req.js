@@ -2,7 +2,8 @@ const host = 'http://127.0.0.1:3003'
 const request = require('request');
 
 module.exports = {
-	getBookById : function(bookId, callback){
+	getBookById : function(args, callback){
+		const bookId = args.bookId;
 		const url = host+'/books/' + bookId;
 
 		console.log('GET ' + url);
@@ -21,7 +22,7 @@ module.exports = {
 		});
     },
 	
-	isAlive : function(callback){
+	isAlive : function(args, callback){
 		const url = host+'/status';
 
 		console.log('GET ' + url);
@@ -40,7 +41,9 @@ module.exports = {
 		});
     },
 	
-    getBooks : function(page, size, callback){
+    getBooks : function(args, callback){
+		const page = args.page;
+		const size = args.size;
 		const url = host+'/books?page=' + page + '&size=' + size;
 
 		console.log('GET ' + url);
@@ -59,8 +62,11 @@ module.exports = {
 		});
     },
 	
-	getBooksByAuthor : function(authorId, page, size, callback){
-        const url = host+'/books?author=' + authorId + '&page=' + page + '&size=' + size;
+	getBooksByAuthor : function(args, callback){
+        const authorId = args.authorId;
+		const page = args.page;
+		const size = args.size;
+		const url = host+'/books?author=' + authorId + '&page=' + page + '&size=' + size;
 
 		console.log('GET ' + url);
 		
@@ -78,8 +84,9 @@ module.exports = {
 		});
     },
 	
-	decreaseBookCount : function(id, callback){
-        const url = host+'/books/' + id;
+	decreaseBookCount : function(args, callback){
+        const id = args.id;
+		const url = host+'/books/' + id;
 		
 		console.log('PATCH ' + url);
 		
@@ -97,8 +104,9 @@ module.exports = {
 		});
     },
 	
-	increaseBookCount : function(id, callback){
-        const url = host+'/books/' + id;
+	increaseBookCount : function(args, callback){
+        const id = args.id;
+		const url = host+'/books/' + id;
 		
 		console.log('DELETE ' + url);
 		
