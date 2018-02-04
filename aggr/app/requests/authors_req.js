@@ -2,7 +2,7 @@ const host = 'http://127.0.0.1:3001';
 const request = require('request');
 const serviceAuth = require('./service_auth');
 
-const authorsServiceAuth = new serviceAuth('aggr', 'aggrSec', 'http://127.0.0.1:3001');
+const authorsServiceAuth = new serviceAuth('aggr', 'aggrSec', host);
 
 function _getAuthorById (id, callback){
     const url = host+'/authors/' + id;
@@ -25,7 +25,7 @@ function _getAuthorById (id, callback){
 
 
 	
-function getAuthors (page, size, callback) {
+function _getAuthors (page, size, callback) {
     const url = host+'/authors?page=' + page + '&size=' + size;
 		
 	console.log('GET ' + url);
@@ -63,10 +63,10 @@ module.exports = {
     },
 	
 	getAuthors : function (page, size, callback) {
-        getAuthors(page, size, function(errors, responseCode, body){
+        _getAuthors(page, size, function(errors, responseCode, body){
 			if (responseCode == 401) {
 				authorsServiceAuth.refreshToken(function () { 
-					getAuthors(page, size, function(errors, responseCode, body) {
+					_getAuthors(page, size, function(errors, responseCode, body) {
 						callback(errors, responseCode, body);
 					});
 				});
