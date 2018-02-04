@@ -20,7 +20,7 @@ function _getReaderById(id, callback) {
 			console.log('res: ' + body);
 			callback(null, response.statusCode, body);
 		}
-	});
+	}).auth(null, null, true, readersServiceAuth.getToken());
 }
 	
 function _addBookToReader(readerId, bookId, callback) {
@@ -39,7 +39,7 @@ function _addBookToReader(readerId, bookId, callback) {
 			console.log('res: ' + body);
 			callback(null, response.statusCode, body);
 		}
-	});
+	}).auth(null, null, true, readersServiceAuth.getToken());
 }
 
 function _removeBookFromReader(readerId, bookId, callback) {
@@ -58,7 +58,7 @@ function _removeBookFromReader(readerId, bookId, callback) {
 			console.log('res: ' + body);
 			callback(null, response.statusCode, body);
 		}
-	});
+	}).auth(null, null, true, readersServiceAuth.getToken());
 }
 
 module.exports = {
