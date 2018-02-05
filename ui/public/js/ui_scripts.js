@@ -4,11 +4,12 @@ class API {
         this.host = "http://127.0.0.1:3000";
     }
 
-    requestData(method, httpMethod, params) {
+    requestData(method, httpMethod, params, auth) {
         const url = this.host + '/' + method;
         const httpRequest = {
             method: httpMethod,
 			headers: {
+				'Authorization': auth,
 				'Content-type': 'application/json',
 				'Access-Control-Request-Method': httpMethod
 			},
@@ -34,11 +35,14 @@ class API {
 
 }
 
-const rederFio = document.getElementById('login_block');
+const readerFio = document.getElementById('reader_fio');
 
 const pageTitle = document.getElementById('pageTitle');
 const baList = document.getElementById('baList');
 const bookInfo = document.getElementById('bookInfo');
+
+const btnSubmit = document.getElementById('btnSubmit');
+
 const btnTake = document.getElementById('btnTake');
 const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
@@ -46,18 +50,66 @@ const msgText = document.getElementById('msgText');
 
 const api = new API();
 
-var readerId = 1;
-var readerName = null;
+function readerLogin() {
+	let login = document.getElementById('reader_login');
+	let password = document.getElementById('reader_password');
+	
+	let basic = 'Basic '+ Base64.encode(login.value+':'+password.value);
+	console.log(basic);
+	
+	api.requestData('reader_auth', 'GET', null, basic).then(function (readerInfo) {
+		console.log(readerInfo);
+		localStorage.setItem("readerId", readerInfo.readerId);
+		localStorage.setItem("readerToken", readerInfo.token);
+			
+		api.requestData('readers/'+readerInfo.readerId, 'GET', null, 'Bearer '+readerInfo.token).then(function (readerInfo) {
+			readerFio.innerText = readerInfo.fio;
+			console.log(readerInfo);
+		});
+				
+		btnSubmit.value = "Выйти";
+		btnSubmit.onclick=readerLogout;
+		login.style.display = 'none';
+		password.style.display = 'none';
+		
+		msgText.innerText = '';
+	});
+}
+
+function readerLogout() {
+	let login = document.getElementById('reader_login');
+	let password = document.getElementById('reader_password');
+	
+	localStorage.removeItem("readerId");
+	localStorage.removeItem("readerToken");
+	
+	btnSubmit.value = "Войти";
+	btnSubmit.onclick="readerLogin();"
+	login.style.display = 'block';
+	password.style.display = 'block';
+	readerFio.innerText = '';
+		
+	btnSubmit.onclick=readerLogin;
+	rerender(renderBooks, 0);
+}
 
 function rerender(pageRenderFunc, arg) {
-	if (!readerName) {
-		api.requestData('readers/'+readerId, 'GET').then(function (readerInfo) {
-			
-				if (readerInfo && typeof(readerInfo.fio) != 'undefined') {
-					readerName = readerInfo.fio;
-				}
-			
-			rederFio.innerText = readerName;
+	
+	
+	// localStorage.removeItem("readerId");
+	// localStorage.removeItem("readerToken");
+	
+	let readerToken = localStorage.getItem("readerToken");
+	let readerId = localStorage.getItem("readerId");
+	
+	if (readerToken) {
+		api.requestData('readers/'+readerId, 'GET', null, 'Bearer '+readerToken).then(function (readerInfo) {
+			if (typeof readerInfo.error != 'undefined') {
+				msgText.innerText = 'Требуется авторизация';
+				readerLogout();
+			}
+				
+			readerFio.innerText = readerInfo.fio;
 			console.log(readerInfo);
 		});
 	}
@@ -74,7 +126,7 @@ function rerender(pageRenderFunc, arg) {
 		baList.removeChild(baList.lastChild);
 	}
 	
-	msgText.innerText = '';
+	//msgText.innerText = '';
 	
 	pageRenderFunc(arg);
 }
@@ -207,7 +259,20 @@ function renderBook(id) {
 }
 
 function getBook(bookId) {
-	api.requestData('readers/'+readerId+'/books?book='+bookId, 'PATCH').then(function (ans) {
+	let readerToken = localStorage.getItem("readerToken");
+	let readerId = localStorage.getItem("readerId");
+	
+	if (!readerId) {
+				msgText.innerText = 'Требуется авторизация';
+				return readerLogout();
+			}
+	
+	api.requestData('readers/'+readerId+'/books?book='+bookId, 'PATCH', null, 'Bearer '+readerToken).then(function (ans) {
+		if (typeof ans.error != 'undefined') {
+				msgText.innerText = 'Требуется авторизация';
+				return readerLogout();
+			}
+		
 		if (ans.result == 1) msgText.innerText = 'Книга успешно заказана';
 		else msgText.innerText = 'Заказ книги не удался - скорее всего свободных экземпляров нет';
 	});
@@ -217,6 +282,9 @@ function getBook(bookId) {
 
 function returnBook() {
 	let bookId = book_to_return.value;
+	let readerToken = localStorage.getItem("readerToken");
+	let readerId = localStorage.getItem("readerId");
+	
 	console.log(bookId);
 	bookId = Number(parseInt(bookId));
 	if ((isNaN(bookId) || bookId < 0)) {
@@ -224,8 +292,17 @@ function returnBook() {
 		book_to_return.style.border = "4px solid red";
 		return;
 	}
+		if (!readerId) {
+				msgText.innerText = 'Требуется авторизация';
+				return readerLogout();
+			}
+			
+	api.requestData('readers/'+readerId+'/books?book='+bookId, 'DELETE', null, 'Bearer '+readerToken).then(function (ans) {
+		if (typeof ans.error != 'undefined') {
+				msgText.innerText = 'Требуется авторизация';
+				return readerLogout();
+			}
 		
-	api.requestData('readers/'+readerId+'/books?book='+bookId, 'DELETE').then(function (ans) {
 		if (ans.result == 1) msgText.innerText = 'Книга успешно возращена';
 		else msgText.innerText = 'Возврат книги не удался - это точно ваша книга?';
 	});

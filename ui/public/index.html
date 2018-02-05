@@ -22,7 +22,10 @@
 			</div>
 			
 			<div id="login_block">
-				f i o
+				<div id="reader_fio"></div>
+				<input id="reader_login" type="text">
+				<input id="reader_password" type="text">
+				<input id="btnSubmit" type="submit" value="Войти" onclick="readerLogin();">
 			</div>
 			
 			<div id="return_block">
@@ -38,7 +41,7 @@
 	</div>
 	
 	<div id="msgField">
-		<span id="msgText">MessageText</span>
+		<span id="msgText"></span>
 	</div>
 	
 	<div id="mid">
@@ -61,6 +64,7 @@
 			<div id="btnNext" class="navBtns"><a href="javascript: void(0)">Следующая страница</a></div>
 		</div>
 	</div>
+  <script src="js/base64.min.js"></script>
   <script src="js/ui_scripts.js"></script>
 </body>
 </html>
