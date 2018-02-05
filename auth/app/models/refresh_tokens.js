@@ -45,7 +45,7 @@ module.exports = (sequelize, DataTypes) => {
 		let token = crypto.randomBytes(32).toString('base64');
 		
 		let now = Date.now();
-		let expires = now+accessTokenLiveTime;
+		let expires = now+refreshTokenLiveTime;
 		
 		this.update(
 			{token: token, expires: expires},
@@ -54,7 +54,14 @@ module.exports = (sequelize, DataTypes) => {
 				rejectOnEmpty: true
 			}
 		).then((result) => {
-			callback(null, result);
+			this.findOne( 
+			{
+				where: { id: id },
+				rejectOnEmpty: true
+			}
+			).then((dbRefreshToken) => {
+				callback(null, dbRefreshToken);
+			});
 		}).catch(function (err) {
 			callback(err, null);
 		});

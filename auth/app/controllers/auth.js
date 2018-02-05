@@ -177,6 +177,30 @@ router.post('/oauth_token', (req, res, next) => {
 			}
 		});
 	} else {
-		return res.status(400).send({error: 'InvalidAuthtype'});
+		db.RefreshToken.getRefreshToken(codeOrRefreshToken,  function (errors, dbRefreshToken) {
+			if (errors == 'SequelizeEmptyResultError') return res.status(404).send({error: 'TokenNotFound'});
+			else if (errors) return res.status(500).send({error: 'DBError'});
+			else {
+				db.AccessToken.resetAccessToken(dbRefreshToken.accessTokenId, false, function (errors, dbAccessToken) {
+					if (errors) return res.status(500).send({error: errors.toString()});
+							
+					db.RefreshToken.resetRefreshToken(dbRefreshToken.id, function (errors, dbRefreshToken) {
+						if (errors) return res.status(500).send({error: errors});
+						
+						let result = {
+							access_token : dbAccessToken.token,
+							token_type : 'bearer',
+							expires : dbAccessToken.expires,
+							refresh_token : dbRefreshToken.token,
+						}
+									
+						if (typeof req.body.state != 'undefined') result.state = req.body.state;
+									
+						return res.status(200).send(result);
+					});
+				});
+			}
+				
+		});
 	}
 });

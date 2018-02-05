@@ -37,16 +37,19 @@ module.exports = (app) => {
 };
 
 router.get('/oauth_code', (req, res, next) => {
-	let authInfo = req.get('authorization');
+	let authInfo = req.get('Authorization');
+	console.log('san',authInfo);
 	if (typeof (authInfo) == 'undefined' || authInfo.split(' ')[0] != 'Basic') {
 		return res.status(401).send({error: 'AuthorizationHeaderInvalid'});
 	}
-	
+	console.log('man');
 	authReq.getOauthCode(req.query.client_id, authInfo, function (err, responseCode, body) {
+		console.log('tot');
+		console.dir(body);
 		if (typeof body.error != 'undefined') {
-			res.redirect( req.query.redirect_uri+'?error='+body.error);
+			res.status(200).send({redirect: req.query.redirect_uri+'?error='+body.error});
 		} else {
-			res.redirect( req.query.redirect_uri+'?code='+body.code);
+			res.status(200).send({redirect: req.query.redirect_uri+'?code='+body.code});
 		}
 	});
 });

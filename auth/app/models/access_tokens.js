@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
 			if (dbAccessToken.expires < now || dbAccessToken.unusedExpires < now) {
 				return callback({error: 'TokenExpireced'}, result);
 			} else {
-				dbAccessToken.unusedExpires = Date.now() + accessTokenUnusedLiveTime;
+				if (dbAccessToken.unusedExpires != dbAccessToken.expires) dbAccessToken.unusedExpires = Date.now() + accessTokenUnusedLiveTime;
 				dbAccessToken.update( {unusedExpires: dbAccessToken.unusedExpires},
 				{
 					where: { id: dbAccessToken.id },
@@ -66,7 +66,14 @@ module.exports = (sequelize, DataTypes) => {
 				rejectOnEmpty: true
 			}
 		).then((result) => {
-			callback(null, result);
+			this.findOne( 
+			{
+				where: { id: id },
+				rejectOnEmpty: true
+			}
+			).then((dbAccessToken) => {
+				callback(null, dbAccessToken);
+			});
 		}).catch(function (err) {
 			callback(err, null);
 		});

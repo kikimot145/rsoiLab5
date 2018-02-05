@@ -96,9 +96,6 @@ function readerLogout() {
 function rerender(pageRenderFunc, arg) {
 	
 	
-	// localStorage.removeItem("readerId");
-	// localStorage.removeItem("readerToken");
-	
 	let readerToken = localStorage.getItem("readerToken");
 	let readerId = localStorage.getItem("readerId");
 	
@@ -310,4 +307,7 @@ function returnBook() {
 	rerender(renderBooks, 0);
 }
 
+	localStorage.removeItem("readerId");
+	localStorage.removeItem("readerToken");
+	
 rerender(renderBooks, 0);

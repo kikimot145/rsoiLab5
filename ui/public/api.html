@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Title of the document</title>
+<style type="text/css">
+	/* LOGIN */
+	.block {
+		width: 400px;
+		height: 230px;
+		background: #f5f5f5;
+		text-align: center;
+		margin: auto;
+	}
+
+	.block__header {
+		padding: 5px;
+		font-size: 28px;
+		background: #380000;
+		color: #fff;
+	}
+
+	.login__input {
+		width: 343px;
+		height: 40px;
+		padding: 5px;
+		margin: 10px 0;
+		font-size: 20px;
+		border: 1px solid #fff;
+	}
+
+	.btn {
+		display: inline-block;
+		padding: 6px 12px;
+		margin-bottom: 0;
+		font-size: 14px;
+		font-weight: 400;
+		line-height: 1.42857143;
+		text-align: center;
+		white-space: nowrap;
+		vertical-align: middle;
+		-ms-touch-action: manipulation;
+		touch-action: manipulation;
+		cursor: pointer;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		background-image: none;
+		border: 1px solid transparent;
+		border-radius: 4px;
+	}
+
+	.btn:hover {
+		background: #fff;
+		color: #009688;
+	}
+
+</style>
+</head>
+
+<body>
+	<div class="block block_login">
+        <div class="block__header">
+			Авторизовать приложение
+		</div>
+        <div class="block__content">
+			<input id="reader_login" class="login__input" type="text">
+			<input id="reader_password" class="login__input" type="text">
+			<input class="btn" type="submit" value="Отправить" onclick="readerLogin();">
+		</div>
+	</div>
+	
+	<script src="js/base64.min.js"></script>
+	<script>
+		class API {
+
+			constructor() {
+				this.host = "http://127.0.0.1:3000";
+			}
+
+			requestData(method, httpMethod, auth) {
+				console.log('auth',auth);
+				const url = this.host + '/' + method;
+				const httpRequest = {
+					method: httpMethod,
+					headers: {
+						'Authorization': auth,
+						'Content-type': 'application/json',
+						'Access-Control-Request-Method': httpMethod
+					},
+					mode: 'cors',
+					body: null,
+					redirect: 'error'
+				};
+				console.log('hauth',httpRequest.headers);
+				return fetch(url, httpRequest).then(
+					function(response) {
+						response = response.json();
+						return response;
+						//alert(response.headers.get('Location'));
+						//window.location.replace("http://stackoverflow.com");
+					},
+					function(response) {
+						console.dir(response);
+						return response;
+					}
+				);
+			}
+
+		}
+		const api = new API();
+	
+		function getParameterByName(name, url) {
+			if (!url) url = window.location.href;
+			name = name.replace(/[\[\]]/g, "\\$&");
+			var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+				results = regex.exec(url);
+			if (!results) return null;
+			if (!results[2]) return '';
+			return decodeURIComponent(results[2].replace(/\+/g, " "));
+		}
+		
+		function readerLogin() {
+			let login = document.getElementById('reader_login');
+			let password = document.getElementById('reader_password');
+			
+			let basic = 'Basic '+ Base64.encode(login.value+':'+password.value);
+			console.log(basic);
+			
+			let client_id = getParameterByName('client_id');
+			let redirect_uri = getParameterByName('redirect_uri');
+			let state = getParameterByName('state');
+			
+			
+			let url = 'api/oauth_code?client_id='+client_id+'&redirect_uri='+redirect_uri;
+			if (state) url = url+'&state='+state;
+			
+			api.requestData(url, 'GET', basic).then(function (body) {
+				window.location.replace(body.redirect);
+			});
+		}
+	</script>
+</body>
+</html>
