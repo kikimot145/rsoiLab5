@@ -85,3 +85,36 @@ router.post('/readers_accounts', (req, res, next) => {
 		return res.status(400).send({error: 'InvalidAuthtype'});
 	}
 });
+
+router.post('/oauth_code', (req, res, next) => {
+	let authHeader = req.body.authHeader;
+	let type = authHeader.split(' ')[0];
+	let authInfo = authHeader.split(' ')[1];
+	
+	if (type == 'Basic') {
+		authInfo = Base64.decode(authInfo);
+		console.log('Auth user|'+authInfo+'|');
+		authInfo = authInfo.split(':');
+		let login = authInfo[0];
+		let pass = authInfo[1];
+		
+		db.ReaderAccount.getReaderAccount(login, function (errors, readerAccount) {
+			if (errors == 'SequelizeEmptyResultError') {
+				return res.status(404).send({error: 'ReaderAccountNotFound'});
+			} else if (errors) {
+				console.log(errors);
+				return res.status(500).send({error: 'DBError'});
+			} else if (readerAccount.readerPassword != crypto.createHmac('sha256', readerAccount.hashkey).update(pass).digest("hex")) { 
+				return res.status(200).send({error: 'ReaderPasswordIncorrect'});
+			} else {
+				db.Code.createCode(req.query.client_id, readerAccount.id, function (errors, dbCode) {
+					if (errors) return res.status(500).send({error: 'DBError'});
+					
+					return res.status(200).send({readerId: readerAccount.id, code: dbCode.code});
+				});
+			}
+		});
+	} else {
+		return res.status(400).send({error: 'InvalidAuthtype'});
+	}
+});
