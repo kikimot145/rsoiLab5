@@ -6,17 +6,18 @@ module.exports = (sequelize, DataTypes) => {
 		readerLogin: DataTypes.STRING,
 		readerPassword: DataTypes.STRING,
 		hashkey: DataTypes.STRING
-	});
+	}, { timestamps: false });
 	
-	ReaderAccount.getReaderAccount = function(readerAccount, readerPassword, callback){
+	ReaderAccount.getReaderAccount = function(readerLogin, callback){
 		this.findOne( 
 		{
-			where: { readerAccount: readerAccount },
+			where: { readerLogin: readerLogin },
 			rejectOnEmpty: true
 		}
 		).then((dbReaderAccount) => {
 			callback(null, dbReaderAccount);
 		}).catch(function (err) {
+			//console.log(err);
 			callback(err, null);
 		});
 	}

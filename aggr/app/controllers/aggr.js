@@ -5,6 +5,7 @@ const request = require('request');
 const readersReq = require('../requests/readers_req');
 const booksReq = require('../requests/books_req');
 const authorsReq = require('../requests/authors_req');
+const authReq = require('../requests/auth_req');
 
 const valCheck = require('../valid_check');
 
@@ -69,6 +70,17 @@ setInterval(function(){
 module.exports = (app) => {
   app.use('/', router);
 };
+
+router.get('/reader_auth', (req, res, next) => {
+	let authInfo = req.get('authorization');
+	if (typeof (authInfo) == 'undefined' || authInfo.split(' ')[0] != 'Basic') {
+		return res.status(401).send({error: 'AuthorizationHeaderInvalid'});
+	}
+	
+	authReq.checkCredentials(authInfo, function (err, responseCode, body) {
+		res.status(responseCode).send(body);
+	});
+});
 
 router.get('/authors', (req, res, next) => {
 	let page = valCheck.checkPositiveInt(req.query.page, 0);
@@ -165,10 +177,20 @@ router.get('/readers/:id', (req, res, next) => {
 	let id = valCheck.checkPositiveInt(req.params.id, -1);
 	if (id < 0) return res.status(400).send({error: "Bad reader id"});
 	
-	console.log('***\n\n' + new Date() + ':\nGet reader ' + id);
+	let authInfo = req.get('authorization');
+	if (typeof (authInfo) == 'undefined' || authInfo.split(' ')[0] != 'Bearer') {
+		return res.status(401).send({error: 'AuthorizationHeaderInvalid'});
+	}
 	
-	readersReq.getReaderById(id, function (err, responseCode, body) {
-		res.status(responseCode).send(JSON.parse(body));
+	authReq.checkCredentials(authInfo, function (err, responseCode, body) {
+		if (responseCode != 200) return res.status(responseCode).send(body);
+		if (id != body.readerId) return res.status(403).send('IdNotCorrespondingToken');
+	
+		console.log('***\n\n' + new Date() + ':\nGet reader ' + id);
+	
+		readersReq.getReaderById(id, function (err, responseCode, body) {
+			res.status(responseCode).send(JSON.parse(body));
+		});
 	});
 });
 
@@ -179,20 +201,30 @@ router.patch('/readers/:id/books', (req, res, next) => {
 	let bookId = valCheck.checkPositiveInt(req.query.book, -1);
 	if (id < 0) return res.status(400).send({error: "Bad book id"});
 	
-	console.log('***\n\n' + new Date() + ':\nAdd book' + bookId + ' for reader ' + id);
+	let authInfo = req.get('authorization');
+	if (typeof (authInfo) == 'undefined' || authInfo.split(' ')[0] != 'Bearer') {
+		return res.status(401).send({error: 'AuthorizationHeaderInvalid'});
+	}
 	
-	booksReq.decreaseBookCount(bookId, function (err, responseCode, body) {
-		if (err || responseCode != 200 || JSON.parse(body).result != 1)
-			res.status(responseCode).send(JSON.parse(body));
-		else {
-			readersReq.addBookToReader(id, bookId, function (err, responseCode, body) {
-				if (err || responseCode != 200 || JSON.parse(body).result != 1) {
-					booksReq.increaseBookCount(bookId, function (err, responseCode, body) {});
-				}
-				
+	authReq.checkCredentials(authInfo, function (err, responseCode, body) {
+		if (responseCode != 200) return res.status(responseCode).send(body);
+		if (id != body.readerId) return res.status(403).send('IdNotCorrespondingToken');
+	
+		console.log('***\n\n' + new Date() + ':\nAdd book' + bookId + ' for reader ' + id);
+	
+		booksReq.decreaseBookCount(bookId, function (err, responseCode, body) {
+			if (err || responseCode != 200 || JSON.parse(body).result != 1)
 				res.status(responseCode).send(JSON.parse(body));
-			});
-		}
+			else {
+				readersReq.addBookToReader(id, bookId, function (err, responseCode, body) {
+					if (err || responseCode != 200 || JSON.parse(body).result != 1) {
+						booksReq.increaseBookCount(bookId, function (err, responseCode, body) {});
+					}
+					
+					res.status(responseCode).send(JSON.parse(body));
+				});
+			}
+		});
 	});
 });
 
@@ -203,20 +235,30 @@ router.delete('/readers/:id/books', (req, res, next) => {
 	let bookId = valCheck.checkPositiveInt(req.query.book, -1);
 	if (id < 0) return res.status(400).send({error: "Bad book id"});
 	
-	console.log('***\n\n' + new Date() + ':\nRemove book' + bookId + ' for reader ' + id);
+	let authInfo = req.get('authorization');
+	if (typeof (authInfo) == 'undefined' || authInfo.split(' ')[0] != 'Bearer') {
+		return res.status(401).send({error: 'AuthorizationHeaderInvalid'});
+	}
 	
-	readersReq.removeBookFromReader(id, bookId, function (err, responseCode, body) {
-		if (err || responseCode != 200 || JSON.parse(body).result != 1)
-			res.status(responseCode).send(JSON.parse(body));
-		else {
-			booksReq.increaseBookCount(bookId, function (err, responseCode, body) {
-				if (err || responseCode == 500) {
-					pushQueue(bookId);
-					return res.status(202).send({result: 1});
-				}
-				
+	authReq.checkCredentials(authInfo, function (err, responseCode, body) {
+		if (responseCode != 200) return res.status(responseCode).send(body);
+		if (id != body.readerId) return res.status(403).send('IdNotCorrespondingToken');
+	
+		console.log('***\n\n' + new Date() + ':\nRemove book' + bookId + ' for reader ' + id);
+	
+		readersReq.removeBookFromReader(id, bookId, function (err, responseCode, body) {
+			if (err || responseCode != 200 || JSON.parse(body).result != 1)
 				res.status(responseCode).send(JSON.parse(body));
-			});
-		}
+			else {
+				booksReq.increaseBookCount(bookId, function (err, responseCode, body) {
+					if (err || responseCode == 500) {
+						pushQueue(bookId);
+						return res.status(202).send({result: 1});
+					}
+					
+					res.status(responseCode).send(JSON.parse(body));
+				});
+			}
+		});
 	});
 });

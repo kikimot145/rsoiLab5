@@ -8,8 +8,15 @@ const config = {
     app: {
       name: 'auth'
     },
-    port: process.env.PORT || 3000,
-    db: 'postgres://localhost/auth-development'
+    port: process.env.PORT || 3004,
+    db: {
+			username: "postgres",
+			password: "1",
+			database: "libra",
+			host: "127.0.0.1",
+			port: "5432",
+			dialect: "postgres"
+	}
   },
 
   test: {
@@ -17,8 +24,15 @@ const config = {
     app: {
       name: 'auth'
     },
-    port: process.env.PORT || 3000,
-    db: 'postgres://localhost/auth-test'
+    port: process.env.PORT || 3004,
+    db: {
+			username: "postgres",
+			password: "1",
+			database: "libra",
+			host: "127.0.0.1",
+			port: "5432",
+			dialect: "postgres"
+	}
   },
 
   production: {
@@ -26,8 +40,15 @@ const config = {
     app: {
       name: 'auth'
     },
-    port: process.env.PORT || 3000,
-    db: 'postgres://localhost/auth-production'
+    port: process.env.PORT || 3004,
+    db: {
+			username: "postgres",
+			password: "1",
+			database: "libra",
+			host: "127.0.0.1",
+			port: "5432",
+			dialect: "postgres"
+	}
   }
 };
 
