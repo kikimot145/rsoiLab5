@@ -28,7 +28,26 @@ function _getOauthCode (client_id, authInfo, callback){
 		
 	console.log('POST ' + url);
 		
-	request.post(url, {method: 'POST', uri: url, json: true, body: {authHeader: readerCredentials}}, function(errors, response, body){
+	request.post(url, {method: 'POST', uri: url, json: true, body: {authHeader: authInfo}}, function(errors, response, body){
+		if(errors) {
+			console.log('err: ' + errors);
+			if (errors.code == 'ECONNREFUSED')
+				return callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
+			
+			callback(errors, null, null);
+		} else {
+			console.log('res: ' + body);
+			callback(null, response.statusCode, body);
+		}
+	}).auth(null, null, true, authServiceAuth.getToken());
+}
+
+function _getOauthToken (reqBody, callback){
+    const url = host+'/oauth_token';
+		
+	console.log('POST ' + url);
+		
+	request.post(url, {method: 'POST', uri: url, json: true, body: reqBody}, function(errors, response, body){
 		if(errors) {
 			console.log('err: ' + errors);
 			if (errors.code == 'ECONNREFUSED')
@@ -63,7 +82,22 @@ module.exports = {
         _getOauthCode (client_id, authInfo, function(errors, responseCode, body){
 			if (responseCode == 401) {
 				authServiceAuth.refreshToken(function () {
-					_checkCredentials (readerCredentials, function(errors, responseCode, body) {
+					_getOauthCode (client_id, authInfo, function(errors, responseCode, body) {
+						callback(errors, responseCode, body);
+					});
+				});
+				
+			} else {
+				callback(errors, responseCode, body);
+			}
+		});
+    },
+	
+	getOauthToken : function(reqBody, callback){ 
+        _getOauthToken (reqBody, function(errors, responseCode, body){
+			if (responseCode == 401) {
+				authServiceAuth.refreshToken(function () {
+					_getOauthToken (reqBody, function(errors, responseCode, body) {
 						callback(errors, responseCode, body);
 					});
 				});

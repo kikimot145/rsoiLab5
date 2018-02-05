@@ -107,10 +107,72 @@ router.post('/oauth_code', (req, res, next) => {
 			} else if (readerAccount.readerPassword != crypto.createHmac('sha256', readerAccount.hashkey).update(pass).digest("hex")) { 
 				return res.status(200).send({error: 'ReaderPasswordIncorrect'});
 			} else {
-				db.Code.createCode(req.query.client_id, readerAccount.id, function (errors, dbCode) {
-					if (errors) return res.status(500).send({error: 'DBError'});
-					
-					return res.status(200).send({readerId: readerAccount.id, code: dbCode.code});
+				db.Application.getApplication(req.query.client_id, function (errors, dbApplication) {
+					if (errors == 'SequelizeEmptyResultError') return res.status(404).send({error: 'ApplicationNotFound'});
+					else if (errors) return res.status(500).send({error: 'DBError'});
+					else {
+						db.Code.createCode(req.query.client_id, readerAccount.id, function (errors, dbCode) {
+						if (errors) return res.status(500).send({error: 'DBError'});
+						
+						return res.status(200).send({readerId: readerAccount.id, code: dbCode.code});
+						});
+					}
+				});
+			}
+		});
+	} else {
+		return res.status(400).send({error: 'InvalidAuthtype'});
+	}
+});
+
+router.post('/oauth_token', (req, res, next) => {
+	let grantType = req.body.grant_type;
+	if (typeof grantType == 'undefined' || !(grantType == 'code' || grantType == 'token'))
+		return res.status(400).send({error: 'IncorrectGrantType'});
+	
+	let clientId = req.body.client_id;
+	if (typeof clientId == 'undefined') res.status(400).send({error: 'ClientIdUnspecified'});
+	
+	let clientSecret = req.body.client_secret;
+	if (typeof clientSecret == 'undefined') res.status(400).send({error: 'ClientSecretUnspecified'});
+	
+	let codeOrRefreshToken = (grantType == 'code') ? req.body.code : req.body.token;
+	if (typeof codeOrRefreshToken == 'undefined') res.status(400).send({error: 'CodeOrRefreshTokenUnspecified'});
+	
+	if (grantType == 'code') {
+		db.Code.getCode(codeOrRefreshToken,  function (errors, dbCode) {
+			if (errors == 'SequelizeEmptyResultError') return res.status(404).send({error: 'CodeNotFound'});
+			else if (errors) return res.status(500).send({error: 'DBError'});
+			else if (dbCode.client_id != clientId) return res.status(403).send({error: 'CodeDoesntMatchClientId'});
+			else {
+				console.log(dbCode.client_id);
+				db.Application.getApplication(dbCode.client_id, function (errors, dbApplication) {
+					if (errors == 'SequelizeEmptyResultError') return res.status(404).send({error: 'CodeNotFound'});
+					else if (errors) return res.status(500).send({error: 'DBError'});
+					else if (dbApplication.client_secret != clientSecret) {
+							
+						return res.status(403).send({error: 'InvalidClientSecret'})
+					}
+					else {
+						db.AccessToken.createAccessToken(dbCode.readerId, false, function (errors, dbAccessToken) {
+							if (errors) return res.status(500).send({error: 'DBError'});
+							
+							db.RefreshToken.createRefreshToken(dbAccessToken.id, function (errors, dbRefreshToken) {
+								if (errors) return res.status(500).send({error: 'DBError'});
+								let result = {
+									access_token : dbAccessToken.token,
+									token_type : 'bearer',
+									expires : dbAccessToken.expires,
+									refresh_token : dbRefreshToken.token,
+								}
+								
+								if (typeof req.body.state != 'undefined') result.state = req.body.state;
+								
+								return res.status(200).send(result);
+							});
+						});
+					}
+				
 				});
 			}
 		});

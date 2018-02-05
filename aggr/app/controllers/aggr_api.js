@@ -51,6 +51,18 @@ router.get('/oauth_code', (req, res, next) => {
 	});
 });
 
+router.post('/oauth_token', (req, res, next) => {
+	if (typeof req.body.redirect_uri == 'undefined') return res.status(400).send({error: 'RedirectUriUnspecified'});
+	
+	authReq.getOauthToken(req.body, function (err, responseCode, body) {
+		if (typeof body.error != 'undefined') {
+			res.redirect( req.body.redirect_uri+'?error='+body.error);
+		} else {
+			res.status(200).send(body);
+		}
+	});
+});
+
 router.get('/authors', (req, res, next) => {
 	let page = valCheck.checkPositiveInt(req.query.page, 0);
 	if (page < 0) return res.status(400).send({error: "Bad page param"});
